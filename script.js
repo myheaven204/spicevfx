@@ -74,7 +74,7 @@
             // Perspective grid
             t += 0.004;
             const gridAlpha = 0.025;
-            ctx.strokeStyle = `rgba(255, 107, 53, ${gridAlpha})`;
+            ctx.strokeStyle = `rgba(196, 248, 42, ${gridAlpha})`;
             ctx.lineWidth = 0.5;
             const horizon = H * 0.5;
             const numLines = 12;
@@ -88,7 +88,7 @@
             for (let j = 0; j < 14; j++) {
                 const y = horizon + ((j / 13) ** 1.5) * (H - horizon);
                 const alpha = gridAlpha * (1 - j / 14);
-                ctx.strokeStyle = `rgba(255, 107, 53, ${alpha})`;
+                ctx.strokeStyle = `rgba(196, 248, 42, ${alpha})`;
                 ctx.beginPath();
                 ctx.moveTo(0, y);
                 ctx.lineTo(W, y);
@@ -97,10 +97,38 @@
 
             // Ambient glow at center
             const grd = ctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, W * 0.4);
-            grd.addColorStop(0, `rgba(255, 107, 53, 0.04)`);
+            grd.addColorStop(0, `rgba(196, 248, 42, 0.04)`);
             grd.addColorStop(1, 'transparent');
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, W, H);
+
+            // Scan line sweep
+            t += 0.003;
+            const scanY = (Math.sin(t * 0.5) * 0.5 + 0.5) * H;
+            const scanGrad = ctx.createLinearGradient(0, scanY - 60, 0, scanY + 60);
+            scanGrad.addColorStop(0, 'transparent');
+            scanGrad.addColorStop(0.5, `rgba(196, 248, 42, 0.03)`);
+            scanGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = scanGrad;
+            ctx.fillRect(0, scanY - 60, W, 120);
+
+            // Data stream lines
+            ctx.globalAlpha = 0.15;
+            for (let k = 0; k < 5; k++) {
+                const lineY = ((t * 30 + k * 80) % H);
+                const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
+                lineGrad.addColorStop(0, 'transparent');
+                lineGrad.addColorStop(0.3, `rgba(196, 248, 42, 0.4)`);
+                lineGrad.addColorStop(0.7, `rgba(196, 248, 42, 0.4)`);
+                lineGrad.addColorStop(1, 'transparent');
+                ctx.strokeStyle = lineGrad;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(0, lineY);
+                ctx.lineTo(W, lineY);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
 
             // Particles
             particles.forEach(p => { p.update(); p.draw(); });
@@ -125,11 +153,11 @@
             particle.style.width = size + 'px';
             particle.style.height = size + 'px';
             particle.style.background = Math.random() > 0.5
-                ? 'rgba(255, 107, 53, 0.6)'
-                : 'rgba(130, 200, 255, 0.5)';
+                ? 'rgba(196, 248, 42, 0.6)'
+                : 'rgba(100, 255, 180, 0.4)';
             particle.style.boxShadow = Math.random() > 0.5
-                ? '0 0 4px rgba(255, 107, 53, 0.4)'
-                : '0 0 4px rgba(130, 200, 255, 0.4)';
+                ? '0 0 4px rgba(196, 248, 42, 0.4)'
+                : '0 0 4px rgba(100, 255, 180, 0.3)';
             container.appendChild(particle);
         }
     }
@@ -172,15 +200,21 @@
     setInterval(updateClock, 1000);
 
     // ---- Progress counter ----
+    let displayedProgress = 0;
+
     function updateLoaderProgress() {
         const numEl = document.getElementById('loaderNum');
         const barFill = document.getElementById('loaderBarFill');
         const ticks = document.querySelectorAll('.lp-tick');
 
+        // Smooth counter interpolation
+        displayedProgress += (loadProgress - displayedProgress) * 0.08;
+
         if (loadProgress < targetLoad) {
             loadProgress = Math.min(loadProgress + (Math.random() * 8 + 3), targetLoad);
         }
-        const val = Math.floor(loadProgress);
+
+        const val = Math.floor(displayedProgress);
 
         if (numEl) {
             numEl.textContent = String(val).padStart(3, '0');
@@ -199,7 +233,8 @@
             });
         }
 
-        if (loadProgress < targetLoad) {
+        // Run until displayed progress has truly settled
+        if (Math.abs(targetLoad - displayedProgress) > 0.5) {
             requestAnimationFrame(updateLoaderProgress);
         }
     }
@@ -304,12 +339,7 @@
         }, 400);
 
         // Init text scramble on nav links hover
-        document.querySelectorAll('.nav-link').forEach(link => {
-            const fx = new TextScramble(link);
-            link.addEventListener('mouseenter', () => {
-                fx.setText(link.textContent);
-            });
-        });
+        // Disabled — text scramble effect removed per user request
     }
 
     // ===== CANVAS BACKGROUND =====
