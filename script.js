@@ -186,6 +186,10 @@
     }
     setInterval(cycleStatus, 350);
 
+    // ---- Dynamic footer year ----
+    const footerYearEl = document.getElementById('currentYear');
+    if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
+
     // ---- Clock ----
     function updateClock() {
         const el = document.getElementById('lbsTime');
