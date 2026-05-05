@@ -487,8 +487,12 @@ em { font-style: normal; color: var(--accent); }
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
     position: relative;
+}
+
+.nav-logo-img {
+    height: 48px;
+    width: auto;
 }
 
 .logo-mark {
