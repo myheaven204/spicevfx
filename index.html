@@ -21,23 +21,105 @@
 
     <!-- Page Loader -->
     <div class="loader" id="loader">
-        <div class="loader-overlay"></div>
-        <video class="loader-video" autoplay muted loop playsinline>
-            <source src="https://res.cloudinary.com/diwzqmwno/video/upload/v1777908314/12817768_3840_2160_30fps_zkcrba.mp4" type="video/mp4">
-        </video>
-        <div class="loader-content">
-            <div class="loader-logo-wrap">
-                <img class="loader-logo" id="loaderLogo" src="https://res.cloudinary.com/diwzqmwno/image/upload/v1777910364/SpiceFX_google_logo_light_fhhq6n.png" alt="SPICE VFX">
-                <div class="loader-glow"></div>
-            </div>
-            <div class="loader-tagline">VISUAL EFFECTS STUDIO</div>
-            <div class="loader-est">EST. 2017</div>
-            <div class="loader-bar-wrap">
-                <div class="loader-bar"><div class="loader-bar-inner"></div></div>
-            </div>
-            <div class="loader-counter"><span>0</span>%</div>
+        <!-- Cinematic background -->
+        <div class="loader-bg">
+            <canvas id="loaderCanvas"></canvas>
+            <div class="loader-bg-vignette"></div>
+            <div class="loader-bg-scanlines"></div>
         </div>
+
+        <!-- Center content -->
+        <div class="loader-content">
+            <!-- Geometric frame corners -->
+            <div class="loader-frame">
+                <span class="lf-corner lf-corner_tl"></span>
+                <span class="lf-corner lf-corner_tr"></span>
+                <span class="lf-corner lf-corner_bl"></span>
+                <span class="lf-corner lf-corner_br"></span>
+
+                <!-- Main logo -->
+                <div class="loader-center">
+                    <div class="loader-rings">
+                        <div class="lr-ring lr-ring_1"></div>
+                        <div class="lr-ring lr-ring_2"></div>
+                        <div class="lr-ring lr-ring_3"></div>
+                    </div>
+                    <div class="loader-logo-container">
+                        <img class="loader-logo" id="loaderLogo" src="https://res.cloudinary.com/diwzqmwno/image/upload/v1777910364/SpiceFX_google_logo_light_fhhq6n.png" alt="SPICE VFX">
+                    </div>
+                </div>
+
+                <!-- Brand text -->
+                <div class="loader-brand">
+                    <div class="lb-line lb-line_top">
+                        <span class="lb-label">VISUAL EFFECTS STUDIO</span>
+                        <span class="lb-divider"></span>
+                        <span class="lb-label lb-label_accent">EST. 2017</span>
+                    </div>
+                    <div class="lb-line lb-line_bottom">
+                        <span class="lb-location">HO CHI MINH CITY, VIETNAM</span>
+                    </div>
+                </div>
+
+                <!-- Progress section -->
+                <div class="loader-progress">
+                    <div class="lp-bar-wrap">
+                        <div class="lp-bar-track">
+                            <div class="lp-bar-fill" id="loaderBarFill">
+                                <div class="lp-bar-glow"></div>
+                            </div>
+                            <div class="lp-bar-lines">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="lp-bar-ticks">
+                            <span class="lp-tick lp-tick_active"></span>
+                            <span class="lp-tick"></span>
+                            <span class="lp-tick"></span>
+                            <span class="lp-tick"></span>
+                        </div>
+                    </div>
+                    <div class="lp-meta">
+                        <span class="lp-counter">
+                            <span class="lp-num" id="loaderNum">000</span>
+                            <span class="lp-unit">%</span>
+                        </span>
+                        <span class="lp-status" id="loaderStatus">INITIALIZING</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating particles -->
         <div class="loader-particles" id="loaderParticles"></div>
+
+        <!-- Corner accents -->
+        <div class="loader-corner-accent lca-tl">
+            <svg width="60" height="60" viewBox="0 0 60 60"><path d="M0 0 L60 0 L60 4 L4 4 L4 60 L0 60 Z" fill="rgba(255,107,53,0.3)"/></svg>
+        </div>
+        <div class="loader-corner-accent lca-br">
+            <svg width="60" height="60" viewBox="0 0 60 60"><path d="M60 60 L0 60 L0 56 L56 56 L56 0 L60 0 Z" fill="rgba(255,107,53,0.3)"/></svg>
+        </div>
+
+        <!-- Top strip -->
+        <div class="loader-top-strip">
+            <div class="lts-content" id="ltsContent">
+                <span>SPICE VFX STUDIO</span>
+                <span class="lts-sep">&#9646;&#9646;</span>
+                <span>LOADING ASSETS</span>
+                <span class="lts-sep">&#9646;&#9646;</span>
+                <span id="ltsStatus">PREPARING EXPERIENCE</span>
+            </div>
+        </div>
+
+        <!-- Bottom strip -->
+        <div class="loader-bottom-strip">
+            <span class="lbs-time" id="lbsTime">00:00</span>
+            <div class="lbs-indicator">
+                <span class="lbs-dot"></span>
+                <span>LIVE</span>
+            </div>
+        </div>
     </div>
 
     <!-- Canvas Background -->

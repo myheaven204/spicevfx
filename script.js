@@ -12,7 +12,105 @@
     let loadProgress = 0;
     const targetLoad = 100;
 
-    // Create particles for loader
+    // ---- Canvas particle system for loader background ----
+    (function initLoaderCanvas() {
+        const canvas = document.getElementById('loaderCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let W, H, particles;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * W;
+                this.y = H + Math.random() * 100;
+                this.size = 0.5 + Math.random() * 1.5;
+                this.speedY = -(0.3 + Math.random() * 0.7);
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.alpha = 0;
+                this.maxAlpha = 0.15 + Math.random() * 0.35;
+                this.hue = Math.random() > 0.7 ? 200 + Math.random() * 30 : 25 + Math.random() * 15;
+                this.decay = 0.001 + Math.random() * 0.002;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha = Math.min(this.alpha + 0.01, this.maxAlpha);
+                if (this.y < -10) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = `hsl(${this.hue}, 100%, 65%)`;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = `hsl(${this.hue}, 100%, 65%)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        particles = Array.from({ length: 60 }, () => {
+            const p = new Particle();
+            p.y = Math.random() * H;
+            p.alpha = p.maxAlpha * Math.random();
+            return p;
+        });
+
+        // Lines grid
+        let t = 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // Perspective grid
+            t += 0.004;
+            const gridAlpha = 0.025;
+            ctx.strokeStyle = `rgba(255, 107, 53, ${gridAlpha})`;
+            ctx.lineWidth = 0.5;
+            const horizon = H * 0.5;
+            const numLines = 12;
+            for (let i = 0; i <= numLines; i++) {
+                const x = (i / numLines) * W;
+                ctx.beginPath();
+                ctx.moveTo(W / 2, horizon);
+                ctx.lineTo(x, H);
+                ctx.stroke();
+            }
+            for (let j = 0; j < 14; j++) {
+                const y = horizon + ((j / 13) ** 1.5) * (H - horizon);
+                const alpha = gridAlpha * (1 - j / 14);
+                ctx.strokeStyle = `rgba(255, 107, 53, ${alpha})`;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+
+            // Ambient glow at center
+            const grd = ctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, W * 0.4);
+            grd.addColorStop(0, `rgba(255, 107, 53, 0.04)`);
+            grd.addColorStop(1, 'transparent');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, W, H);
+
+            // Particles
+            particles.forEach(p => { p.update(); p.draw(); });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    // ---- Create HTML particles ----
     function createLoaderParticles() {
         const container = document.getElementById('loaderParticles');
         if (!container) return;
@@ -20,22 +118,87 @@
             const particle = document.createElement('div');
             particle.className = 'particle';
             particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 4 + 's';
-            particle.style.animationDuration = (3 + Math.random() * 2) + 's';
-            const size = 2 + Math.random() * 3;
+            particle.style.bottom = Math.random() * 30 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (5 + Math.random() * 3) + 's';
+            const size = 1 + Math.random() * 2;
             particle.style.width = size + 'px';
             particle.style.height = size + 'px';
+            particle.style.background = Math.random() > 0.5
+                ? 'rgba(255, 107, 53, 0.6)'
+                : 'rgba(130, 200, 255, 0.5)';
+            particle.style.boxShadow = Math.random() > 0.5
+                ? '0 0 4px rgba(255, 107, 53, 0.4)'
+                : '0 0 4px rgba(130, 200, 255, 0.4)';
             container.appendChild(particle);
         }
     }
     createLoaderParticles();
 
-    function updateLoaderProgress() {
-        const counter = document.querySelector('.loader-counter span');
-        if (counter) {
-            loadProgress = Math.min(loadProgress + Math.random() * 15 + 5, targetLoad);
-            counter.textContent = Math.floor(loadProgress);
+    // ---- Status text cycling ----
+    const statusMessages = [
+        'INITIALIZING',
+        'LOADING ASSETS',
+        'BUILDING SCENE',
+        'COMPILING SHADERS',
+        'RENDERING VFX',
+        'ALMOST READY',
+        'LAUNCHING'
+    ];
+    let statusIdx = 0;
+    const statusEl = document.getElementById('loaderStatus');
+    const ltsStatusEl = document.getElementById('ltsStatus');
+
+    function cycleStatus() {
+        if (statusIdx < statusMessages.length - 1) {
+            statusIdx++;
         }
+        if (statusEl) statusEl.textContent = statusMessages[statusIdx];
+        if (ltsStatusEl) ltsStatusEl.textContent = statusMessages[statusIdx];
+    }
+    setInterval(cycleStatus, 350);
+
+    // ---- Clock ----
+    function updateClock() {
+        const el = document.getElementById('lbsTime');
+        if (!el) return;
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        el.textContent = `${h}:${m}:${s}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ---- Progress counter ----
+    function updateLoaderProgress() {
+        const numEl = document.getElementById('loaderNum');
+        const barFill = document.getElementById('loaderBarFill');
+        const ticks = document.querySelectorAll('.lp-tick');
+
+        if (loadProgress < targetLoad) {
+            loadProgress = Math.min(loadProgress + (Math.random() * 8 + 3), targetLoad);
+        }
+        const val = Math.floor(loadProgress);
+
+        if (numEl) {
+            numEl.textContent = String(val).padStart(3, '0');
+        }
+        if (barFill) {
+            barFill.style.width = val + '%';
+        }
+
+        // Tick progression
+        if (ticks.length) {
+            const thresholds = [0, 25, 55, 80];
+            ticks.forEach((tick, i) => {
+                if (i < thresholds.length && val >= thresholds[i]) {
+                    tick.classList.add('lp-tick_active');
+                }
+            });
+        }
+
         if (loadProgress < targetLoad) {
             requestAnimationFrame(updateLoaderProgress);
         }
@@ -48,7 +211,7 @@
                 loader.classList.add('hidden');
                 document.body.style.overflow = '';
                 initHeroAnimation();
-            }, 2400);
+            }, 2800);
         });
         document.body.style.overflow = 'hidden';
     }
