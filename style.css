@@ -341,6 +341,22 @@ em { font-style: normal; color: var(--accent); }
     transition: opacity 0.8s var(--ease), visibility 0.8s;
 }
 
+.loader-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%);
+    z-index: 1;
+}
+
+.loader-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.3;
+}
+
 .loader.hidden {
     opacity: 0;
     visibility: hidden;
@@ -348,36 +364,146 @@ em { font-style: normal; color: var(--accent); }
 }
 
 .loader-content {
+    position: relative;
+    z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
+}
+
+.loader-logo-wrap {
+    position: relative;
+    animation: logoFloat 3s ease-in-out infinite;
 }
 
 .loader-logo {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: 16px;
-    color: var(--text);
+    width: 380px;
+    height: auto;
     position: relative;
-    overflow: hidden;
+    z-index: 2;
+    filter: drop-shadow(0 0 30px var(--accent-glow));
 }
 
-.loader-logo::after {
+.loader-glow {
+    position: absolute;
+    inset: -40px;
+    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
+    z-index: 1;
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+.loader-tagline {
+    font-family: var(--font-body);
+    font-size: 11px;
+    letter-spacing: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    animation: fadeInUp 1s var(--ease) 0.3s both;
+}
+
+.loader-est {
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-top: -12px;
+    animation: fadeInUp 1s var(--ease) 0.4s both;
+}
+
+.loader-bar-wrap {
+    margin-top: 8px;
+    animation: fadeInUp 1s var(--ease) 0.5s both;
+}
+
+.loader-bar {
+    width: 280px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.loader-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #ff6b35, var(--accent-2));
+    border-radius: 2px;
+    animation: loaderBar 2.5s var(--ease) forwards;
+    position: relative;
+}
+
+.loader-bar-inner::after {
     content: '';
     position: absolute;
-    left: 0;
-    top: 50%;
-    width: 0;
-    height: 1px;
+    right: 0;
+    top: -4px;
+    width: 10px;
+    height: 10px;
     background: var(--accent);
-    animation: loaderLine 2s var(--ease) forwards;
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+    animation: loaderDot 2.5s var(--ease) forwards;
 }
 
-@keyframes loaderLine {
-    from { width: 0; opacity: 1; }
-    to { width: 100%; opacity: 0; }
+.loader-counter {
+    font-family: var(--font-body);
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.4);
+    animation: fadeInUp 1s var(--ease) 0.7s both;
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loaderBar {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes loaderDot {
+    0% { right: 0; opacity: 1; }
+    80% { opacity: 1; }
+    100% { right: calc(100% - 10px); opacity: 0; }
+}
+
+.loader-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.loader-particles .particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleFloat 4s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-20vh) scale(1); }
 }
 
 .loader-char {
@@ -389,47 +515,6 @@ em { font-style: normal; color: var(--accent); }
 
 @keyframes charReveal {
     to { opacity: 1; transform: translateY(0) rotateX(0); }
-}
-
-.loader-bar {
-    width: 200px;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 1px;
-    overflow: hidden;
-    position: relative;
-}
-
-.loader-bar-inner {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    border-radius: 1px;
-    animation: loaderBar 2s var(--ease) forwards;
-    position: relative;
-}
-
-.loader-bar-inner::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: -3px;
-    width: 6px;
-    height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 12px var(--accent);
-    animation: loaderDot 2s var(--ease) forwards;
-}
-
-@keyframes loaderBar {
-    from { width: 0; }
-    to { width: 100%; }
-}
-
-@keyframes loaderDot {
-    0% { right: 0; opacity: 1; }
-    80% { opacity: 1; }
-    100% { right: calc(100% - 6px); opacity: 0; }
 }
 
 .loader-counter {

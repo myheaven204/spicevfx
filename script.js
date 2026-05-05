@@ -12,6 +12,24 @@
     let loadProgress = 0;
     const targetLoad = 100;
 
+    // Create particles for loader
+    function createLoaderParticles() {
+        const container = document.getElementById('loaderParticles');
+        if (!container) return;
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 4 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 2) + 's';
+            const size = 2 + Math.random() * 3;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            container.appendChild(particle);
+        }
+    }
+    createLoaderParticles();
+
     function updateLoaderProgress() {
         const counter = document.querySelector('.loader-counter span');
         if (counter) {

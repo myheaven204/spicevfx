@@ -21,11 +21,23 @@
 
     <!-- Page Loader -->
     <div class="loader" id="loader">
+        <div class="loader-overlay"></div>
+        <video class="loader-video" autoplay muted loop playsinline>
+            <source src="https://res.cloudinary.com/diwzqmwno/video/upload/v1777908314/12817768_3840_2160_30fps_zkcrba.mp4" type="video/mp4">
+        </video>
         <div class="loader-content">
-            <div class="loader-logo" id="loaderLogo">SPICE VFX</div>
-            <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+            <div class="loader-logo-wrap">
+                <img class="loader-logo" id="loaderLogo" src="https://res.cloudinary.com/diwzqmwno/image/upload/v1777910364/SpiceFX_google_logo_light_fhhq6n.png" alt="SPICE VFX">
+                <div class="loader-glow"></div>
+            </div>
+            <div class="loader-tagline">VISUAL EFFECTS STUDIO</div>
+            <div class="loader-est">EST. 2017</div>
+            <div class="loader-bar-wrap">
+                <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+            </div>
             <div class="loader-counter"><span>0</span>%</div>
         </div>
+        <div class="loader-particles" id="loaderParticles"></div>
     </div>
 
     <!-- Canvas Background -->
