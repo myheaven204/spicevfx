@@ -824,8 +824,11 @@
         function buildDots() {
             dotsContainer.innerHTML = '';
             for (let i = 0; i < total; i++) {
-                const dot = document.createElement('div');
+                const dot = document.createElement('button');
                 dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.setAttribute('aria-label', `Go to testimonial ${i + 1} of ${total}`);
+                dot.setAttribute('role', 'tab');
+                dot.setAttribute('tabindex', i === 0 ? '0' : '-1');
                 dot.addEventListener('click', () => goTo(i));
                 dotsContainer.appendChild(dot);
             }
@@ -837,11 +840,14 @@
             if (current >= total) current = 0;
 
             const isMobile = window.innerWidth <= 900;
-            const cardWidth = isMobile ? window.innerWidth - 64 : cards[0].offsetWidth + 24;
+            const cardWidth = isMobile ? window.innerWidth - 64 : cards[0].getBoundingClientRect().width + 24;
             track.style.transform = `translateX(-${current * cardWidth}px)`;
 
-            dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+            const dots = dotsContainer.querySelectorAll('.dot');
+            dots.forEach((d, i) => {
                 d.classList.toggle('active', i === current);
+                d.setAttribute('tabindex', i === current ? '0' : '-1');
+                d.setAttribute('aria-selected', i === current ? 'true' : 'false');
             });
 
             // Animate visible cards
@@ -859,11 +865,24 @@
             autoplay = setInterval(() => goTo(current + 1), 5000);
         }
 
+        function stopAutoplay() {
+            clearInterval(autoplay);
+        }
+
+        // Pause autoplay when tab is hidden to avoid janky resumes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        });
+
         if (prevBtn) prevBtn.addEventListener('click', () => { goTo(current - 1); resetAutoplay(); });
         if (nextBtn) nextBtn.addEventListener('click', () => { goTo(current + 1); resetAutoplay(); });
 
         function resetAutoplay() {
-            clearInterval(autoplay);
+            stopAutoplay();
             startAutoplay();
         }
 
@@ -878,7 +897,24 @@
             }
         }, { passive: true });
 
-        // Observe testimonials section
+        // Keyboard navigation between dots
+        dotsContainer.addEventListener('keydown', (e) => {
+            const dots = dotsContainer.querySelectorAll('.dot');
+            const currentIndex = Array.from(dots).findIndex(d => d === document.activeElement);
+            if (currentIndex === -1) return;
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const next = dots[(currentIndex + 1) % total];
+                next.focus();
+                goTo((currentIndex + 1) % total);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prev = dots[(currentIndex - 1 + total) % total];
+                prev.focus();
+                goTo((currentIndex - 1 + total) % total);
+            }
+        });
         const testimonialsObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -920,19 +956,20 @@
     if (contactForm) {
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = contactForm.querySelector('.btn_submit');
-            const originalText = btn.querySelector('.btn-text').textContent;
-            btn.querySelector('.btn-text').textContent = 'Sending...';
+            const btn = contactForm.querySelector('.btn-primary');
+            if (!btn) return;
+            const originalText = btn.textContent;
+            btn.textContent = 'Sending\u2026';
             btn.disabled = true;
 
             await new Promise(r => setTimeout(r, 2000));
 
-            btn.querySelector('.btn-text').textContent = 'Sent!';
+            btn.textContent = 'Sent!';
             btn.style.background = 'var(--accent-2)';
             showToast('Message sent! We\'ll be in touch soon.');
 
             setTimeout(() => {
-                btn.querySelector('.btn-text').textContent = originalText;
+                btn.textContent = originalText;
                 btn.style.background = '';
                 btn.disabled = false;
                 contactForm.reset();
@@ -1126,7 +1163,74 @@
         }
     }
 
+    // ===== INSIGHT CARD VIMEO THUMBNAIL SYSTEM =====
+    async function loadInsightThumbnails() {
+        const cards = document.querySelectorAll('.insight-card[data-vimeo]');
+        console.log(`[Insight Thumbnails] Found ${cards.length} insight cards`);
+
+        for (const card of cards) {
+            const videoId = card.getAttribute('data-vimeo');
+            const imgDiv = card.querySelector('.insight-img');
+            const skeleton = card.querySelector('.insight-thumb-skeleton');
+            const errorEl = card.querySelector('.insight-thumb-error');
+
+            if (!imgDiv) continue;
+
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 8000);
+
+                const res = await fetch(
+                    `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`,
+                    { signal: controller.signal }
+                );
+                clearTimeout(timeout);
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+                const thumbUrl = data.thumbnail_url;
+                if (!thumbUrl) throw new Error('No thumbnail_url');
+
+                const highResUrl = upgradeToHighRes(thumbUrl);
+
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    imgDiv.style.backgroundImage =
+                        `url(${highResUrl}), linear-gradient(135deg, #1a0a2e, #16213e)`;
+                    imgDiv.style.backgroundSize = 'cover';
+                    imgDiv.style.backgroundPosition = 'center';
+                    if (skeleton) {
+                        skeleton.classList.add('hidden');
+                        setTimeout(() => skeleton.remove(), 700);
+                    }
+                    imgDiv.classList.add('img-loaded');
+                    console.log(`[Insight] ${videoId}: Thumbnail loaded`);
+                };
+                img.onerror = () => {
+                    if (errorEl) errorEl.style.display = 'flex';
+                    if (skeleton) {
+                        skeleton.classList.add('hidden');
+                        setTimeout(() => skeleton.remove(), 700);
+                    }
+                    console.warn(`[Insight] ${videoId}: Thumbnail failed`);
+                };
+                img.src = highResUrl;
+
+            } catch (err) {
+                if (errorEl) errorEl.style.display = 'flex';
+                if (skeleton) {
+                    skeleton.classList.add('hidden');
+                    setTimeout(() => skeleton.remove(), 700);
+                }
+                console.warn(`[Insight] ${videoId}: ${err.message}`);
+            }
+        }
+    }
+
     loadVimeoThumbnails();
+    loadInsightThumbnails();
 
     // ===== WORK ITEM HOVER — cinematic overlay reveal =====
     workItems.forEach(item => {
