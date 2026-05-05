@@ -1,0 +1,9 @@
+{
+  "name": "vfx-studio",
+  "version": "1.0.0",
+  "description": "NEXUS — Visual Effects Studio",
+  "scripts": {
+    "dev": "npx live-server --port=3000 --open=/index.html",
+    "start": "npm run dev"
+  }
+}

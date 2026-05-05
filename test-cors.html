@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vimeo CORS Test</title>
+    <style>
+        body { background: #111; color: #fff; font-family: monospace; padding: 20px; }
+        .test { display: flex; gap: 10px; margin: 10px 0; }
+        .box { width: 200px; height: 120px; background-size: cover; border: 1px solid #333; }
+        .ok { border-color: #0f0; }
+        .fail { border-color: #f00; background: #300; }
+    </style>
+</head>
+<body>
+    <h1>Vimeo CDN CORS Test</h1>
+    <div class="test">
+        <div>
+            <p>1920x1080 (JS Load)</p>
+            <div id="box1" class="box"></div>
+        </div>
+        <div>
+            <p>Direct &lt;img&gt;</p>
+            <img id="img1" width="200" crossorigin="anonymous">
+        </div>
+    </div>
+    <div id="log"></div>
+    <script>
+        const log = msg => { console.log(msg); document.getElementById('log').innerHTML += '<p>' + msg + '</p>'; };
+        
+        const url = 'https://i.vimeocdn.com/video/2091544165-94a05c7fee77fb2829e09e080700f15927e2fe32d87357de369d689091a40723-d_1920x1080.webp';
+        
+        log('Testing: ' + url);
+        
+        // Test 1: JS Image load
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            log('✅ JS Image load: SUCCESS');
+            document.getElementById('box1').style.backgroundImage = `url(${url})`;
+            document.getElementById('box1').classList.add('ok');
+        };
+        img.onerror = (e) => {
+            log('❌ JS Image load: FAILED');
+            document.getElementById('box1').classList.add('fail');
+        };
+        img.src = url;
+        
+        // Test 2: Direct img tag
+        document.getElementById('img1').onload = () => log('✅ Direct img: SUCCESS');
+        document.getElementById('img1').onerror = () => log('❌ Direct img: FAILED');
+        document.getElementById('img1').src = url;
+    </script>
+</body>
+</html>
